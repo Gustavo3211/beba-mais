@@ -162,6 +162,7 @@ type RawState = {
   records?: unknown;
   settings?: { goal?: unknown; defaultCup?: unknown } | null;
   devices?: unknown;
+  lastSeen?: unknown;
 };
 
 export function sanitizeState(input: unknown): AppState | null {
@@ -206,5 +207,9 @@ export function sanitizeState(input: unknown): AppState | null {
       defaultCup: validNumber(raw.settings.defaultCup, CUP_MIN, CUP_MAX, DEFAULT_SETTINGS.defaultCup),
     },
     devices,
+    lastSeen:
+      typeof raw.lastSeen === 'string' && Number.isFinite(Date.parse(raw.lastSeen))
+        ? raw.lastSeen
+        : new Date().toISOString(),
   };
 }

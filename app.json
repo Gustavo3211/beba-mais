@@ -17,6 +17,12 @@
       "permissions": ["android.permission.NFC"]
     },
     "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#5eead4"
+        }
+      ],
       "expo-sharing",
       "expo-audio"
     ]

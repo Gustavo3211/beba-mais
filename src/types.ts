@@ -19,4 +19,6 @@ export type AppState = {
   records: WaterRecord[];
   settings: Settings;
   devices: Device[];
+  /** Última vez que o app foi aberto (ISO). Usado para as notificações. */
+  lastSeen: string;
 };

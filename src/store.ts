@@ -79,5 +79,14 @@ export function useWaterStore() {
     [commit]
   );
 
-  return { state, addWater, undoLast, updateSettings, addDevice };
+  /** Marca que o app foi aberto agora (usado pelas notificações). Sem loop se já for recente. */
+  const touch = useCallback(() => {
+    const current = stateRef.current;
+    if (!current) return;
+    const last = Date.parse(current.lastSeen);
+    if (Number.isFinite(last) && Date.now() - last < 5 * 60 * 1000) return;
+    commit({ ...current, lastSeen: new Date().toISOString() });
+  }, [commit]);
+
+  return { state, addWater, undoLast, updateSettings, addDevice, touch };
 }

@@ -22,7 +22,12 @@ export async function loadState(): Promise<AppState> {
   } catch (error) {
     console.warn('Falha ao ler os dados salvos.', error);
   }
-  return { records: [], settings: { ...DEFAULT_SETTINGS }, devices: [] };
+  return {
+    records: [],
+    settings: { ...DEFAULT_SETTINGS },
+    devices: [],
+    lastSeen: new Date().toISOString(),
+  };
 }
 
 export async function saveState(state: AppState): Promise<void> {

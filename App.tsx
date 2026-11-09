@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,6 +10,7 @@ import { PressableScale } from './src/components/PressableScale';
 import { SettingsModal } from './src/components/SettingsModal';
 import { Toast, ToastState } from './src/components/Toast';
 import { numberFormat } from './src/logic';
+import { configureNotifications, syncNotifications } from './src/notifications';
 import { CalendarScreen } from './src/screens/CalendarScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
@@ -28,7 +29,7 @@ export default function App() {
 
 function AppShell() {
   const insets = useSafeAreaInsets();
-  const { state, addWater, undoLast, updateSettings, addDevice } = useWaterStore();
+  const { state, addWater, undoLast, updateSettings, addDevice, touch } = useWaterStore();
   const [tab, setTab] = useState<Tab>('home');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [nfcOpen, setNfcOpen] = useState(false);
@@ -39,6 +40,22 @@ function AppShell() {
 
   const showToast = useCallback((message: string) => setToast({ message, id: Date.now() }), []);
   const hideToast = useCallback(() => setToast(null), []);
+
+  // Permissão + canal de notificação na primeira abertura (e marca a visita atual).
+  const configured = useRef(false);
+  useEffect(() => {
+    if (!state) return;
+    if (!configured.current) {
+      configured.current = true;
+      configureNotifications().catch(() => {});
+    }
+    touch();
+  }, [state, touch]);
+
+  // Reagenda os lembretes sempre que o estado muda (registro, meta, última visita).
+  useEffect(() => {
+    if (state) syncNotifications(state);
+  }, [state]);
 
   const changeTab = useCallback(
     (next: Tab) => {
