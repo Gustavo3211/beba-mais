@@ -1,8 +1,6 @@
 import React, { useRef } from 'react';
 import { Animated, Pressable, PressableProps, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
-import { playClick } from '../sound';
-
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type Props = Omit<PressableProps, 'style' | 'children'> & {
@@ -47,10 +45,7 @@ export function PressableScale({
   return (
     <AnimatedPressable
       {...rest}
-      onPress={(event) => {
-        playClick();
-        onPress?.(event);
-      }}
+      onPress={onPress}
       onPressIn={(event) => {
         animateTo(activeScale, 0);
         animateShade(1);
