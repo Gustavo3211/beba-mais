@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "BEBA+",
+    "slug": "beba-mais",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#080f16",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.bebaplus.app"
+    },
+    "android": {
+      "package": "com.bebaplus.app",
+      "edgeToEdgeEnabled": true,
+      "permissions": ["android.permission.NFC"]
+    },
+    "plugins": [
+      "expo-sharing",
+      "expo-audio"
+    ]
+  }
+}
