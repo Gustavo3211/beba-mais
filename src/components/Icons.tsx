@@ -40,14 +40,14 @@ export function DropletIcon({ size = 19, color = colors.blue, strokeWidth = 1.8 
   );
 }
 
-export function NfcIcon({ size = 21, color = colors.blue, strokeWidth = 1.8 }: IconProps) {
-  const stroke = { stroke: color, strokeWidth, fill: 'none' as const };
+/** mdi:cellphone-nfc (Material Design Icons via Iconify) */
+export function NfcIcon({ size = 21, color = colors.blue }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path d="M6.5 6.5a8 8 0 0 1 0 11" {...stroke} strokeLinecap="round" />
-      <Path d="M10 9.5a4 4 0 0 1 0 5" {...stroke} strokeLinecap="round" />
-      <Path d="M13.5 4a11 11 0 0 1 0 16" {...stroke} strokeLinecap="round" />
-      <Circle cx={12} cy={12} r={1.1} fill={color} />
+      <Path
+        d="M2 16v2a5 5 0 0 1 5 5h2a7 7 0 0 0-7-7m0 4v3h3a3 3 0 0 0-3-3m0-8v2a9 9 0 0 1 9 9h2c0-6.08-4.92-11-11-11M17 1H7a2 2 0 0 0-2 2v7.37c.69.16 1.36.37 2 .63V5h10v13h-3.03c.53 1.25.84 2.59.95 4H17a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2"
+        fill={color}
+      />
     </Svg>
   );
 }
