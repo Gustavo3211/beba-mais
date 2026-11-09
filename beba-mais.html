@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080f16">
+  <title>BEBA+</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080f16;
+      --surface: #111d27;
+      --surface-2: #172733;
+      --surface-3: #203543;
+      --line: rgba(185, 218, 238, .11);
+      --text: #f2f8fc;
+      --muted: #9aafbd;
+      --blue: #72d0fa;
+      --blue-2: #35aee8;
+      --blue-dark: #082335;
+      --good: #83d5f7;
+      --low: #52758b;
+      --radius: 24px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--bg); }
+    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); }
+    button, input { font: inherit; }
+    button { color: inherit; -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, input:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+    .app { width: 100%; max-width: 480px; min-height: 100dvh; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 18px calc(96px + env(safe-area-inset-bottom)); overflow: hidden; }
+    .topbar { height: 52px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+    .brand { display: inline-flex; align-items: center; gap: 9px; color: var(--text); text-decoration: none; font-size: 23px; font-weight: 900; letter-spacing: -.055em; }
+    .brand-mark { width: 31px; height: 31px; display: grid; place-items: center; color: var(--blue); }
+    .brand-mark svg { width: 29px; height: 29px; }
+    .brand-plus { color: var(--blue); }
+    .icon-btn { width: 48px; height: 48px; border: 1px solid var(--line); border-radius: 16px; display: grid; place-items: center; color: var(--blue); background: var(--surface); cursor: pointer; }
+    .icon-btn svg { width: 21px; height: 21px; }
+    .screen { display: none; animation: appear .18s ease-out; }
+    .screen.active { display: block; }
+    @keyframes appear { from { opacity: .6; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .screen-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 17px; }
+    .screen-head h1 { margin: 0; font-size: 27px; line-height: 1.12; letter-spacing: -.045em; font-weight: 800; }
+    .date-line { margin: 0 0 7px; color: var(--muted); font-size: 13px; font-weight: 650; }
+    .goal-chip { min-height: 44px; padding: 0 12px; display: inline-flex; align-items: center; gap: 7px; flex: none; border: 1px solid rgba(114,208,250,.2); border-radius: 13px; color: var(--blue); background: rgba(114,208,250,.09); font-size: 13px; font-weight: 750; cursor: pointer; }
+    .goal-chip svg { width: 15px; height: 15px; }
+    .water-card { padding: 23px 18px 18px; border: 1px solid var(--line); border-radius: 28px; background: linear-gradient(150deg, #142631, #101b25 70%); box-shadow: 0 16px 40px rgba(0,0,0,.2); }
+    .ring-wrap { display: grid; place-items: center; padding: 2px 0 13px; }
+    .ring { --progress: 0deg; width: min(198px, 62vw); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; position: relative; background: conic-gradient(from -90deg, var(--blue) 0deg, var(--blue-2) var(--progress), #263a48 var(--progress), #263a48 360deg); box-shadow: 0 0 0 1px rgba(114,208,250,.13), 0 12px 42px rgba(37,152,204,.13); }
+    .ring::before { content: ""; position: absolute; inset: 11px; border-radius: 50%; background: radial-gradient(circle at 45% 30%, #172f3d, #0d1a24 72%); box-shadow: inset 0 0 0 1px rgba(255,255,255,.035); }
+    .ring-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; }
+    .ring-total { font-size: 43px; line-height: 1.02; font-weight: 850; letter-spacing: -.065em; font-variant-numeric: tabular-nums; }
+    .ring-unit { color: var(--muted); font-size: 14px; font-weight: 600; }
+    .goal-line { display: flex; justify-content: center; gap: 8px; align-items: baseline; margin: 0 0 17px; color: var(--muted); font-size: 14px; }
+    .goal-line strong { color: var(--text); font-size: 16px; font-weight: 750; }
+    .progress-meta { display: flex; justify-content: space-between; margin: 0 1px 8px; font-size: 13px; color: var(--muted); }
+    .progress-meta strong { color: var(--blue); font-size: 14px; }
+    .progress-track { height: 7px; margin-bottom: 18px; overflow: hidden; border-radius: 99px; background: #293c49; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #36a9e2, #8cddff); transition: width .25s ease; }
+    .add-main { width: 100%; min-height: 60px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 17px; color: #062235; background: linear-gradient(105deg, #8cddff, #53bceF); font-size: 17px; font-weight: 850; box-shadow: 0 8px 22px rgba(52,166,220,.19); cursor: pointer; }
+    .add-main svg { width: 21px; height: 21px; stroke-width: 2.5; }
+    .quick-add { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 11px; }
+    .quick-add button { min-height: 51px; border: 1px solid var(--line); border-radius: 14px; color: #e0edf4; background: rgba(255,255,255,.035); font-size: 15px; font-weight: 750; cursor: pointer; }
+    .quick-add button:active, .add-main:active { transform: scale(.985); }
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-top: 14px; }
+    .stat-card { min-height: 112px; padding: 15px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
+    .stat-label { color: var(--muted); font-size: 13px; font-weight: 650; }
+    .stat-value { margin-top: 12px; color: var(--text); font-size: 25px; line-height: 1.1; font-weight: 850; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+    .stat-value small { color: var(--muted); font-size: 14px; font-weight: 650; letter-spacing: 0; }
+    .records { margin-top: 24px; }
+    .section-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 12px; }
+    .section-title h2 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: -.03em; }
+    .text-action { min-height: 42px; padding: 0 7px; border: 0; color: var(--blue); background: transparent; font-size: 13px; font-weight: 750; cursor: pointer; }
+    .record-list { display: flex; flex-direction: column; gap: 8px; }
+    .record-row { min-height: 62px; display: flex; align-items: center; gap: 12px; padding: 9px 13px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+    .record-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; color: var(--blue); background: rgba(114,208,250,.1); }
+    .record-icon svg { width: 19px; height: 19px; }
+    .record-time { color: var(--muted); font-size: 13px; }
+    .record-amount { margin-left: auto; color: var(--text); font-size: 16px; font-weight: 800; }
+    .empty-records { padding: 18px 13px; border: 1px dashed rgba(185,218,238,.17); border-radius: 15px; color: var(--muted); font-size: 14px; text-align: center; }
+
+    /* Calendário */
+    .month-switch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 5px 0 17px; }
+    .month-switch h2 { margin: 0; font-size: 19px; font-weight: 800; }
+    .month-arrows { display: flex; gap: 7px; }
+    .month-arrows button { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 13px; color: var(--blue); background: var(--surface); cursor: pointer; }
+    .month-arrows button:disabled { opacity: .28; }
+    .month-arrows svg { width: 18px; height: 18px; }
+    .calendar-card { padding: 15px 11px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+    .weekday { display: grid; place-items: center; min-height: 31px; color: #b4c5d0; font-size: 11px; font-weight: 800; }
+    .day-cell { min-width: 0; min-height: 63px; padding: 5px 2px 4px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; border: 1px solid transparent; border-radius: 11px; color: var(--text); background: #172733; cursor: pointer; }
+    .day-cell:disabled { opacity: .27; cursor: default; }
+    .day-cell.selected { border-color: var(--blue); background: #1d3a4b; }
+    .day-num { font-size: 13px; font-weight: 750; }
+    .day-volume { max-width: 100%; color: #a9bbc7; font-size: 10px; font-weight: 600; white-space: nowrap; }
+    .day-dot { width: 8px; height: 8px; border-radius: 50%; background: transparent; }
+    .day-dot.above { background: #83d5f7; box-shadow: 0 0 9px rgba(131,213,247,.35); }
+    .day-dot.below { background: #54768c; }
+    .day-dot.average { background: #b5d9e9; }
+    .legend { display: flex; flex-wrap: wrap; gap: 12px 16px; padding: 15px 2px 2px; color: var(--muted); font-size: 12px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 7px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .legend-dot.above { background: #83d5f7; }
+    .legend-dot.below { background: #54768c; }
+    .legend-dot.average { background: #b5d9e9; }
+    .calendar-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .summary-card { padding: 14px; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); }
+    .summary-card span { display: block; color: var(--muted); font-size: 12px; }
+    .summary-card strong { display: block; margin-top: 7px; font-size: 20px; font-weight: 850; }
+    .selected-day { margin-top: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); }
+    .selected-day span { color: var(--muted); font-size: 13px; }
+    .selected-day strong { display: block; margin-top: 6px; font-size: 25px; font-weight: 850; }
+    .selected-day p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+    /* Perfil */
+    .share-card { min-height: 390px; padding: 23px 20px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; border: 1px solid rgba(132,214,250,.25); border-radius: 27px; background: radial-gradient(circle at 95% 0%, rgba(105,210,255,.29), transparent 38%), linear-gradient(145deg, #17445d, #0c2637 68%, #091b29); }
+    .share-card::before { content: ""; position: absolute; width: 280px; height: 280px; top: 45px; right: -165px; border: 1px solid rgba(185,232,255,.15); border-radius: 50%; box-shadow: 0 0 0 24px rgba(185,232,255,.025), 0 0 0 52px rgba(185,232,255,.02); }
+    .share-brand { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 10px; color: #b9eaff; font-size: 14px; font-weight: 900; letter-spacing: .13em; }
+    .share-headline { position: relative; z-index: 1; margin: 42px 0 28px; color: #f4fbff; font-size: clamp(28px, 8vw, 36px); line-height: 1.04; font-weight: 900; letter-spacing: -.05em; overflow-wrap: anywhere; }
+    .share-headline span { color: #7bd5ff; }
+    .share-stats { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+    .share-stat { min-width: 0; padding: 12px 8px; border: 1px solid rgba(189,231,250,.2); border-radius: 13px; background: rgba(3,22,34,.37); }
+    .share-stat strong { display: block; font-size: 20px; font-weight: 850; letter-spacing: -.04em; overflow-wrap: anywhere; }
+    .share-stat small { display: block; margin-top: 5px; color: #b0cddd; font-size: 10px; line-height: 1.25; }
+    .share-footer { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 8px; margin-top: 24px; color: #b0cddd; font-size: 10px; font-weight: 750; letter-spacing: .08em; }
+    .profile-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 13px; }
+    .profile-number { padding: 15px; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); }
+    .profile-number span { display: block; color: var(--muted); font-size: 12px; }
+    .profile-number strong { display: block; margin-top: 8px; font-size: 22px; font-weight: 850; }
+    .share-button { width: 100%; min-height: 56px; margin-top: 14px; border: 0; border-radius: 16px; color: var(--blue-dark); background: linear-gradient(105deg, #8cddff, #53bcef); font-size: 16px; font-weight: 850; cursor: pointer; }
+
+    /* Navegação */
+    .bottom-nav { position: fixed; z-index: 20; left: 50%; bottom: 0; transform: translateX(-50%); width: min(100%, 480px); display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(185,218,238,.1); background: rgba(9,17,25,.96); backdrop-filter: blur(18px); }
+    .bottom-nav button { min-height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; border-radius: 13px; color: #8298a7; background: transparent; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .bottom-nav button svg { width: 22px; height: 22px; stroke-width: 1.8; }
+    .bottom-nav button.active { color: var(--blue); background: rgba(114,208,250,.09); }
+
+    /* Modais */
+    .modal-backdrop { position: fixed; z-index: 50; inset: 0; display: none; align-items: flex-end; justify-content: center; padding: 12px; background: rgba(0,0,0,.72); backdrop-filter: blur(8px); }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(100%, 440px); max-height: min(88dvh, 720px); overflow: auto; padding: 22px 19px calc(20px + env(safe-area-inset-bottom)); border: 1px solid var(--line); border-radius: 25px; background: #13232e; box-shadow: 0 20px 70px rgba(0,0,0,.45); }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .modal-head h2 { margin: 0; font-size: 21px; font-weight: 850; }
+    .close-btn { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 13px; color: var(--muted); background: var(--surface-2); font-size: 23px; cursor: pointer; }
+    .field { display: grid; gap: 8px; margin: 14px 0; }
+    .field label { color: #d6e5ed; font-size: 14px; font-weight: 700; }
+    .field input { width: 100%; height: 53px; padding: 0 14px; border: 1px solid var(--line); border-radius: 13px; color: var(--text); background: #0a151d; font-size: 17px; }
+    .modal-primary { width: 100%; min-height: 54px; margin-top: 8px; border: 0; border-radius: 14px; color: var(--blue-dark); background: var(--blue); font-size: 16px; font-weight: 850; cursor: pointer; }
+    .scanner { width: 100%; aspect-ratio: 1.4; overflow: hidden; display: grid; place-items: center; margin-bottom: 13px; border: 1px dashed rgba(114,208,250,.35); border-radius: 17px; background: #091720; }
+    .scanner video { display: none; width: 100%; height: 100%; object-fit: cover; }
+    .scanner-placeholder { padding: 20px; color: var(--muted); font-size: 14px; text-align: center; }
+    .scanner-placeholder svg { display: block; width: 43px; height: 43px; margin: 0 auto 10px; color: var(--blue); }
+    .scanner-status { min-height: 19px; margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+    .secondary-btn { width: 100%; min-height: 50px; border: 1px solid var(--line); border-radius: 13px; color: var(--text); background: var(--surface-2); font-size: 15px; font-weight: 750; cursor: pointer; }
+    .modal-divider { display: flex; align-items: center; gap: 12px; margin: 17px 0 4px; color: var(--muted); font-size: 12px; }
+    .modal-divider::before, .modal-divider::after { content: ""; height: 1px; flex: 1; background: var(--line); }
+    .device-list { display: grid; gap: 8px; margin-top: 12px; }
+    .device-item { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); font-size: 14px; }
+    .toast { position: fixed; z-index: 80; left: 50%; bottom: calc(87px + env(safe-area-inset-bottom)); transform: translate(-50%, 12px); max-width: calc(100% - 30px); padding: 12px 16px; border: 1px solid rgba(114,208,250,.25); border-radius: 13px; color: var(--text); background: #17384a; font-size: 14px; text-align: center; opacity: 0; pointer-events: none; transition: .2s ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (min-width: 700px) { .app { padding-top: 24px; } .topbar { margin-bottom: 30px; } }
+    @media (max-width: 360px) {
+      .app { padding-left: 13px; padding-right: 13px; }
+      .water-card { padding-left: 13px; padding-right: 13px; }
+      .ring { width: 195px; }
+      .ring-total { font-size: 39px; }
+      .day-cell { min-height: 58px; }
+      .day-volume { font-size: 9px; }
+      .share-headline { font-size: 27px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="#inicio" aria-label="BEBA+">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.7C9.5 6.3 5.8 10.2 5.8 14.4a6.2 6.2 0 1 0 12.4 0C18.2 10.2 14.5 6.3 12 2.7Z" fill="currentColor"/><path d="M9 15.1c.2 1.5 1.2 2.5 2.8 2.8" stroke="#09283a" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+        <span>BEBA<span class="brand-plus">+</span></span>
+      </a>
+      <button class="icon-btn" id="open-qr" type="button" aria-label="Conectar bebedouro por QR Code">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M19 19h2v2h-2M20 16v2"/></svg>
+      </button>
+    </header>
+
+    <main>
+      <section class="screen active" id="screen-home" aria-label="Início">
+        <div class="screen-head">
+          <div><p class="date-line" id="today-date"></p><h1>Seu consumo</h1></div>
+          <button class="goal-chip" id="open-settings" type="button" aria-label="Editar meta"><span id="goal-chip-value">2.000 ml</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 5 5 5M4 20l4.2-.8L19 8.4a2.1 2.1 0 0 0-3-3L5.2 16.2 4 20Z"/></svg></button>
+        </div>
+
+        <section class="water-card" aria-label="Consumo de água">
+          <div class="ring-wrap">
+            <div class="ring" id="progress-ring" role="progressbar" aria-label="Progresso diário" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="ring-content"><strong class="ring-total" id="today-total">0</strong><span class="ring-unit">ml</span></div>
+            </div>
+          </div>
+          <p class="goal-line">de <strong id="goal-line-value">2.000 ml</strong></p>
+          <div class="progress-meta"><span>Progresso</span><strong id="today-percent">0%</strong></div>
+          <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+          <button class="add-main" id="main-add" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span id="main-add-label">250 ml</span></button>
+          <div class="quick-add" aria-label="Adicionar outras quantidades">
+            <button type="button" data-amount="100">+ 100 ml</button>
+            <button type="button" data-amount="150">+ 150 ml</button>
+            <button type="button" data-amount="500">+ 500 ml</button>
+          </div>
+        </section>
+
+        <div class="stats-row">
+          <section class="stat-card"><div class="stat-label">Ontem</div><div class="stat-value" id="yesterday-total">0 <small>ml</small></div></section>
+          <section class="stat-card"><div class="stat-label">Streak</div><div class="stat-value" id="streak-total">0 <small>dias</small></div></section>
+        </div>
+
+        <section class="records">
+          <div class="section-title"><h2>Hoje</h2><button class="text-action" id="undo-last" type="button" hidden>Desfazer</button></div>
+          <div class="record-list" id="record-list"></div>
+        </section>
+      </section>
+
+      <section class="screen" id="screen-calendar" aria-label="Calendário">
+        <div class="screen-head"><h1>Calendário</h1></div>
+        <div class="month-switch">
+          <h2 id="month-title"></h2>
+          <div class="month-arrows">
+            <button id="prev-month" type="button" aria-label="Mês anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+            <button id="next-month" type="button" aria-label="Próximo mês"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+          </div>
+        </div>
+        <section class="calendar-card">
+          <div class="calendar-grid" id="calendar-grid"></div>
+          <div class="legend">
+            <span class="legend-item"><i class="legend-dot above"></i>Acima</span>
+            <span class="legend-item"><i class="legend-dot below"></i>Abaixo</span>
+            <span class="legend-item"><i class="legend-dot average"></i>Na média</span>
+          </div>
+        </section>
+        <div class="calendar-summary">
+          <div class="summary-card"><span>Média diária</span><strong id="month-average">—</strong></div>
+          <div class="summary-card"><span>Total no mês</span><strong id="month-total">—</strong></div>
+        </div>
+        <section class="selected-day"><span id="selected-date"></span><strong id="selected-amount">—</strong><p id="selected-comparison"></p></section>
+      </section>
+
+      <section class="screen" id="screen-profile" aria-label="Meu perfil">
+        <div class="screen-head"><h1>Meu perfil</h1></div>
+        <section class="share-card" id="share-card">
+          <div class="share-brand"><span>BEBA+</span><span id="share-year"></span></div>
+          <h2 class="share-headline" id="share-headline">SEU ANO AQUÁTICO COMEÇA COM O PRIMEIRO GOLE.</h2>
+          <div class="share-stats">
+            <div class="share-stat"><strong id="share-litres">0 L</strong><small>Água bebida</small></div>
+            <div class="share-stat"><strong id="share-streak">0</strong><small>Maior streak</small></div>
+            <div class="share-stat"><strong id="share-goal-days">0</strong><small>Dias na meta</small></div>
+          </div>
+          <div class="share-footer"><span>BEBA MAIS.</span><span>BEBA+ / <b id="share-footer-year"></b></span></div>
+        </section>
+        <div class="profile-numbers">
+          <div class="profile-number"><span>Total no ano</span><strong id="profile-total">0 L</strong></div>
+          <div class="profile-number"><span>Média por dia</span><strong id="profile-average">0 ml</strong></div>
+          <div class="profile-number"><span>Melhor streak</span><strong id="profile-best">0 dias</strong></div>
+          <div class="profile-number"><span>Dias na meta</span><strong id="profile-goal-days">0</strong></div>
+        </div>
+        <button class="share-button" id="share-button" type="button">Compartilhar</button>
+      </section>
+    </main>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Navegação">
+    <button class="active" type="button" data-screen="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2z"/></svg><span>Início</span></button>
+    <button type="button" data-screen="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg><span>Calendário</span></button>
+    <button type="button" data-screen="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Perfil</span></button>
+  </nav>
+
+  <div class="modal-backdrop" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal">
+      <div class="modal-head"><h2 id="settings-title">Meta diária</h2><button class="close-btn" type="button" data-close="settings-modal" aria-label="Fechar">×</button></div>
+      <form id="settings-form">
+        <div class="field"><label for="goal-input">Meta (ml)</label><input id="goal-input" type="number" min="250" max="10000" step="50" required></div>
+        <div class="field"><label for="cup-input">Botão principal (ml)</label><input id="cup-input" type="number" min="50" max="2000" step="25" required></div>
+        <button class="modal-primary" type="submit">Salvar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="qr-modal" role="dialog" aria-modal="true" aria-labelledby="qr-title">
+    <div class="modal">
+      <div class="modal-head"><h2 id="qr-title">Conectar bebedouro</h2><button class="close-btn" type="button" id="close-qr" aria-label="Fechar">×</button></div>
+      <div class="scanner"><video id="qr-video" playsinline muted></video><div class="scanner-placeholder" id="scanner-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v2M14 20h2M19 19h2v2h-2"/></svg>Aponte para o QR Code</div></div>
+      <p class="scanner-status" id="scanner-status" aria-live="polite"></p>
+      <button class="secondary-btn" id="camera-button" type="button">Abrir câmera</button>
+      <div class="modal-divider">ou digite o código</div>
+      <form id="device-form">
+        <div class="field"><input id="device-code" type="text" maxlength="100" placeholder="Código do bebedouro" autocomplete="off" aria-label="Código do bebedouro"></div>
+        <button class="modal-primary" type="submit">Conectar</button>
+      </form>
+      <div class="device-list" id="device-list"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    'use strict';
+
+    const STORAGE_KEY = 'beba-plus-state-v2';
+    const DEFAULT_SETTINGS = { goal: 2000, defaultCup: 250 };
+    const monthStart = (() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1, 12); })();
+    let viewedMonth = new Date(monthStart);
+    let selectedDayKey = dateKey(new Date());
+    let state = loadState();
+    let toastTimer = null;
+    let scanStream = null;
+    let scanFrame = null;
+    let barcodeDetector = null;
+
+    function todayKey() { return dateKey(new Date()); }
+    function dateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    function dateFromKey(key) {
+      const [year, month, day] = key.split('-').map(Number);
+      return new Date(year, month - 1, day, 12);
+    }
+    function shiftDate(date, amount) {
+      const result = new Date(date);
+      result.setDate(result.getDate() + amount);
+      return result;
+    }
+    function numberFormat(value) { return Math.round(value).toLocaleString('pt-BR'); }
+    function litresFormat(value) {
+      return (value / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    }
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved && Array.isArray(saved.records) && saved.settings) {
+          return {
+            records: saved.records.filter(r => r && /^\d{4}-\d{2}-\d{2}$/.test(r.date) && Number(r.amount) > 0),
+            settings: {
+              goal: validNumber(saved.settings.goal, 250, 10000, DEFAULT_SETTINGS.goal),
+              defaultCup: validNumber(saved.settings.defaultCup, 50, 2000, DEFAULT_SETTINGS.defaultCup)
+            },
+            devices: Array.isArray(saved.devices) ? saved.devices : []
+          };
+        }
+        // Preserva apenas registros reais da versão anterior; descarta o histórico fictício.
+        const legacy = JSON.parse(localStorage.getItem('beba-plus-state-v1'));
+        if (legacy && legacy.demoMode === false && Array.isArray(legacy.records)) {
+          return {
+            records: legacy.records.filter(r => r && /^\d{4}-\d{2}-\d{2}$/.test(r.date) && Number(r.amount) > 0),
+            settings: {
+              goal: validNumber(legacy.settings && legacy.settings.goal, 250, 10000, DEFAULT_SETTINGS.goal),
+              defaultCup: validNumber(legacy.settings && legacy.settings.defaultCup, 50, 2000, DEFAULT_SETTINGS.defaultCup)
+            },
+            devices: Array.isArray(legacy.devices) ? legacy.devices : []
+          };
+        }
+      } catch (error) {
+        console.warn('Falha ao ler os dados salvos.', error);
+      }
+      return { records: [], settings: { ...DEFAULT_SETTINGS }, devices: [] };
+    }
+    function validNumber(value, min, max, fallback) {
+      const number = Number(value);
+      return Number.isFinite(number) && number >= min && number <= max ? number : fallback;
+    }
+    function saveState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+      catch (error) { toast('Não foi possível salvar os dados.'); }
+    }
+    function dayRecords(key) {
+      return state.records
+        .filter(record => record.date === key)
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }
+    function dayTotal(key) {
+      return state.records.reduce((total, record) => total + (record.date === key ? Number(record.amount) : 0), 0);
+    }
+    function allDayTotals() {
+      const totals = new Map();
+      state.records.forEach(record => totals.set(record.date, (totals.get(record.date) || 0) + Number(record.amount)));
+      return totals;
+    }
+    function getStreak() {
+      const today = new Date();
+      let cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
+      if (dayTotal(dateKey(cursor)) < state.settings.goal) cursor = shiftDate(cursor, -1);
+      let streak = 0;
+      while (dayTotal(dateKey(cursor)) >= state.settings.goal) {
+        streak += 1;
+        cursor = shiftDate(cursor, -1);
+      }
+      return streak;
+    }
+    function yearStats() {
+      const year = new Date().getFullYear();
+      const totals = allDayTotals();
+      let total = 0;
+      let days = 0;
+      let goalDays = 0;
+      totals.forEach((amount, key) => {
+        const date = dateFromKey(key);
+        if (date.getFullYear() === year && key <= todayKey()) {
+          total += amount;
+          days += 1;
+          if (amount >= state.settings.goal) goalDays += 1;
+        }
+      });
+      return { total, days, goalDays, average: days ? total / days : 0 };
+    }
+    function bestYearStreak() {
+      const year = new Date().getFullYear();
+      const today = todayKey();
+      const totals = allDayTotals();
+      let best = 0;
+      let current = 0;
+      const cursor = new Date(year, 0, 1, 12);
+      while (dateKey(cursor) <= today) {
+        if ((totals.get(dateKey(cursor)) || 0) >= state.settings.goal) {
+          current += 1;
+          best = Math.max(best, current);
+        } else {
+          current = 0;
+        }
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      return best;
+    }
+    function toast(message) {
+      const node = document.getElementById('toast');
+      node.textContent = message;
+      node.classList.add('show');
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => node.classList.remove('show'), 2200);
+    }
+    function renderAll() {
+      renderHome();
+      renderCalendar();
+      renderProfile();
+      renderDevices();
+    }
+    function renderHome() {
+      const today = todayKey();
+      const total = dayTotal(today);
+      const goal = state.settings.goal;
+      const percent = Math.round((total / goal) * 100);
+      const progress = Math.min(100, Math.max(0, (total / goal) * 100));
+      const ring = document.getElementById('progress-ring');
+      ring.style.setProperty('--progress', `${progress * 3.6}deg`);
+      ring.setAttribute('aria-valuenow', String(Math.min(100, percent)));
+      document.getElementById('today-total').textContent = numberFormat(total);
+      document.getElementById('goal-line-value').textContent = `${numberFormat(goal)} ml`;
+      document.getElementById('goal-chip-value').textContent = `${numberFormat(goal)} ml`;
+      document.getElementById('today-percent').textContent = `${percent}%`;
+      document.getElementById('progress-fill').style.width = `${progress}%`;
+      document.getElementById('main-add-label').textContent = `${numberFormat(state.settings.defaultCup)} ml`;
+      document.getElementById('main-add').setAttribute('aria-label', `Adicionar ${state.settings.defaultCup} mililitros`);
+      document.getElementById('today-date').textContent = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+      const yesterday = dayTotal(dateKey(shiftDate(new Date(), -1)));
+      document.getElementById('yesterday-total').innerHTML = `${numberFormat(yesterday)} <small>ml</small>`;
+      const streak = getStreak();
+      document.getElementById('streak-total').innerHTML = `${streak} <small>${streak === 1 ? 'dia' : 'dias'}</small>`;
+      renderRecords();
+    }
+    function renderRecords() {
+      const records = dayRecords(todayKey());
+      const list = document.getElementById('record-list');
+      const undo = document.getElementById('undo-last');
+      undo.hidden = records.length === 0;
+      if (records.length === 0) {
+        list.innerHTML = '<div class="empty-records">Nenhum registro</div>';
+        return;
+      }
+      list.innerHTML = records.map(record => {
+        const time = new Date(record.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        return `<div class="record-row"><span class="record-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2.8C9.7 6.2 5.7 10.1 5.7 14.4a6.3 6.3 0 1 0 12.6 0C18.3 10.1 14.3 6.2 12 2.8Z"/></svg></span><span class="record-time">${time}</span><strong class="record-amount">+${numberFormat(record.amount)} ml</strong></div>`;
+      }).join('');
+    }
+    function addWater(amount) {
+      const value = Number(amount);
+      if (!Number.isFinite(value) || value <= 0) return;
+      const now = new Date();
+      state.records.push({
+        id: `r-${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
+        date: dateKey(now),
+        amount: value,
+        timestamp: now.toISOString()
+      });
+      saveState();
+      renderAll();
+      toast(`+${numberFormat(value)} ml`);
+    }
+    function undoLast() {
+      const last = dayRecords(todayKey())[0];
+      if (!last) return;
+      state.records = state.records.filter(record => record.id !== last.id);
+      saveState();
+      renderAll();
+    }
+    function showScreen(name) {
+      document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.toggle('active', screen.id === `screen-${name}`);
+      });
+      document.querySelectorAll('.bottom-nav button').forEach(button => {
+        button.classList.toggle('active', button.dataset.screen === name);
+      });
+      if (name === 'calendar') renderCalendar();
+      if (name === 'profile') renderProfile();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+    function openSettings() {
+      document.getElementById('goal-input').value = state.settings.goal;
+      document.getElementById('cup-input').value = state.settings.defaultCup;
+      openModal('settings-modal');
+    }
+    function saveSettings(event) {
+      event.preventDefault();
+      const goal = Number(document.getElementById('goal-input').value);
+      const cup = Number(document.getElementById('cup-input').value);
+      if (!Number.isFinite(goal) || goal < 250 || goal > 10000 || !Number.isFinite(cup) || cup < 50 || cup > 2000) {
+        toast('Confira os valores.');
+        return;
+      }
+      state.settings = { goal, defaultCup: cup };
+      saveState();
+      closeModal('settings-modal');
+      renderAll();
+      toast('Meta atualizada.');
+    }
+    function renderCalendar() {
+      const year = viewedMonth.getFullYear();
+      const month = viewedMonth.getMonth();
+      const first = new Date(year, month, 1, 12);
+      const last = new Date(year, month + 1, 0, 12);
+      const today = todayKey();
+      const totals = allDayTotals();
+      const entries = [...totals.entries()].filter(([key]) => {
+        const date = dateFromKey(key);
+        return date.getFullYear() === year && date.getMonth() === month && key <= today;
+      });
+      const average = entries.length ? entries.reduce((sum, entry) => sum + entry[1], 0) / entries.length : 0;
+      document.getElementById('month-title').textContent = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(first);
+      document.getElementById('prev-month').disabled = false;
+      document.getElementById('next-month').disabled = year === monthStart.getFullYear() && month === monthStart.getMonth();
+      const weekdays = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+      let html = weekdays.map(day => `<div class="weekday">${day}</div>`).join('');
+      for (let blank = 0; blank < first.getDay(); blank += 1) html += '<div aria-hidden="true"></div>';
+      for (let day = 1; day <= last.getDate(); day += 1) {
+        const date = new Date(year, month, day, 12);
+        const key = dateKey(date);
+        const isFuture = key > today;
+        const hasRecord = totals.has(key) && !isFuture;
+        const amount = totals.get(key) || 0;
+        let status = 'none';
+        if (hasRecord && average > 0) {
+          const difference = (amount - average) / average;
+          status = difference > .05 ? 'above' : difference < -.05 ? 'below' : 'average';
+        }
+        const selected = selectedDayKey === key ? ' selected' : '';
+        const volume = hasRecord ? compactVolume(amount) : '';
+        const label = `${day}${hasRecord ? `, ${numberFormat(amount)} ml` : ', sem registro'}`;
+        html += `<button class="day-cell${selected}" type="button" data-day="${key}" aria-label="${label}" ${isFuture ? 'disabled' : ''}><span class="day-num">${day}</span><span class="day-volume">${volume}</span><i class="day-dot ${hasRecord ? status : (isFuture ? '' : 'none')}"></i></button>`;
+      }
+      document.getElementById('calendar-grid').innerHTML = html;
+      document.getElementById('month-average').textContent = average ? `${numberFormat(average)} ml` : '—';
+      const sum = entries.reduce((total, entry) => total + entry[1], 0);
+      document.getElementById('month-total').textContent = entries.length ? `${numberFormat(sum)} ml` : '—';
+      if (selectedDayKey && dateFromKey(selectedDayKey).getFullYear() === year && dateFromKey(selectedDayKey).getMonth() === month) {
+        renderSelectedDay(selectedDayKey, average);
+      } else {
+        selectedDayKey = dateKey(new Date(year, month, Math.min(new Date().getDate(), last.getDate()), 12));
+        renderSelectedDay(selectedDayKey, average);
+      }
+    }
+    function compactVolume(amount) {
+      if (amount >= 1000) return `${(amount / 1000).toFixed(1).replace('.', ',')}k`;
+      return String(Math.round(amount));
+    }
+    function renderSelectedDay(key, average) {
+      const date = dateFromKey(key);
+      const amount = dayTotal(key);
+      const hasRecords = state.records.some(record => record.date === key);
+      document.getElementById('selected-date').textContent = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(date);
+      document.getElementById('selected-amount').textContent = hasRecords ? `${numberFormat(amount)} ml` : '0 ml';
+      let comparison = 'Sem registro';
+      if (hasRecords && average > 0) {
+        const difference = (amount - average) / average;
+        comparison = difference > .05 ? 'Acima da média' : difference < -.05 ? 'Abaixo da média' : 'Na média';
+      }
+      document.getElementById('selected-comparison').textContent = comparison;
+    }
+    function renderProfile() {
+      const stats = yearStats();
+      const streak = bestYearStreak();
+      const litres = litresFormat(stats.total);
+      const headline = stats.total > 0
+        ? `VOCÊ BEBEU <span>${litres} LITROS.</span> O AQUÁRIO PEDIU AUTÓGRAFO.`
+        : 'SEU ANO AQUÁTICO COMEÇA COM O PRIMEIRO GOLE.';
+      const year = new Date().getFullYear();
+      document.getElementById('share-year').textContent = year;
+      document.getElementById('share-footer-year').textContent = year;
+      document.getElementById('share-headline').innerHTML = headline;
+      document.getElementById('share-litres').textContent = `${litres} L`;
+      document.getElementById('share-streak').textContent = streak;
+      document.getElementById('share-goal-days').textContent = stats.goalDays;
+      document.getElementById('profile-total').textContent = `${litres} L`;
+      document.getElementById('profile-average').textContent = `${numberFormat(stats.average)} ml`;
+      document.getElementById('profile-best').textContent = `${streak} dias`;
+      document.getElementById('profile-goal-days').textContent = stats.goalDays;
+    }
+    function drawWrappedText(context, text, x, y, maxWidth, lineHeight, maxLines) {
+      const words = text.split(' ');
+      let line = '';
+      let lineCount = 0;
+      for (const word of words) {
+        const candidate = line ? `${line} ${word}` : word;
+        if (context.measureText(candidate).width > maxWidth && line) {
+          context.fillText(line, x, y);
+          line = word;
+          y += lineHeight;
+          lineCount += 1;
+          if (lineCount >= maxLines - 1) break;
+        } else {
+          line = candidate;
+        }
+      }
+      if (line && lineCount < maxLines) context.fillText(line, x, y);
+    }
+    function roundedRect(context, x, y, width, height, radius) {
+      context.beginPath();
+      context.moveTo(x + radius, y);
+      context.arcTo(x + width, y, x + width, y + height, radius);
+      context.arcTo(x + width, y + height, x, y + height, radius);
+      context.arcTo(x, y + height, x, y, radius);
+      context.arcTo(x, y, x + width, y, radius);
+      context.closePath();
+    }
+    async function shareProfile() {
+      const stats = yearStats();
+      const litres = litresFormat(stats.total);
+      const streak = bestYearStreak();
+      const year = new Date().getFullYear();
+      const title = stats.total > 0
+        ? `VOCÊ BEBEU ${litres} LITROS. O AQUÁRIO PEDIU AUTÓGRAFO.`
+        : 'SEU ANO AQUÁTICO COMEÇA COM O PRIMEIRO GOLE.';
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1350;
+      const context = canvas.getContext('2d');
+      if (!context) { toast('Não foi possível criar a imagem.'); return; }
+      const gradient = context.createLinearGradient(0, 0, 1080, 1350);
+      gradient.addColorStop(0, '#17445d');
+      gradient.addColorStop(.62, '#0c2637');
+      gradient.addColorStop(1, '#091b29');
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, 1080, 1350);
+      const glow = context.createRadialGradient(920, 130, 30, 920, 130, 650);
+      glow.addColorStop(0, 'rgba(105,210,255,.3)');
+      glow.addColorStop(1, 'rgba(105,210,255,0)');
+      context.fillStyle = glow;
+      context.fillRect(0, 0, 1080, 850);
+      context.fillStyle = '#b9eaff';
+      context.font = '900 40px system-ui, sans-serif';
+      context.fillText('BEBA+', 78, 112);
+      context.fillStyle = '#b5d4e5';
+      context.font = '700 22px system-ui, sans-serif';
+      context.textAlign = 'right';
+      context.fillText(String(year), 1000, 108);
+      context.textAlign = 'left';
+      context.fillStyle = '#f4fbff';
+      context.font = '900 76px system-ui, sans-serif';
+      drawWrappedText(context, title, 78, 360, 900, 91, 4);
+      context.fillStyle = '#7bd5ff';
+      context.font = '900 116px system-ui, sans-serif';
+      context.fillText(`${litres} L`, 78, 805);
+      context.fillStyle = '#bdd9e8';
+      context.font = '700 25px system-ui, sans-serif';
+      context.fillText('DE ÁGUA REGISTRADA', 84, 855);
+      const cards = [
+        { x: 78, value: String(streak), label: 'MELHOR STREAK' },
+        { x: 410, value: String(stats.goalDays), label: 'DIAS NA META' },
+        { x: 742, value: `${numberFormat(stats.average)} ml`, label: 'MÉDIA / DIA' }
+      ];
+      cards.forEach(card => {
+        context.fillStyle = 'rgba(4,26,41,.54)';
+        context.strokeStyle = 'rgba(177,227,250,.24)';
+        context.lineWidth = 2;
+        roundedRect(context, card.x, 980, 260, 150, 22);
+        context.fill();
+        context.stroke();
+        context.fillStyle = '#f2faff';
+        context.font = '850 39px system-ui, sans-serif';
+        context.fillText(card.value, card.x + 19, 1045);
+        context.fillStyle = '#b0cddd';
+        context.font = '700 15px system-ui, sans-serif';
+        context.fillText(card.label, card.x + 19, 1090);
+      });
+      context.fillStyle = '#b0cddd';
+      context.font = '750 20px system-ui, sans-serif';
+      context.fillText('BEBA MAIS.', 78, 1250);
+      context.textAlign = 'right';
+      context.fillText('BEBA+.', 1000, 1250);
+      context.textAlign = 'left';
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) { toast('Não foi possível criar a imagem.'); return; }
+      const filename = `beba-mais-${year}.png`;
+      try {
+        const file = new File([blob], filename, { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'BEBA+' });
+        } else {
+          downloadBlob(blob, filename);
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') downloadBlob(blob, filename);
+      }
+    }
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+    }
+    function openQrModal() {
+      openModal('qr-modal');
+      document.getElementById('scanner-status').textContent = '';
+    }
+    async function startScanner() {
+      const status = document.getElementById('scanner-status');
+      const video = document.getElementById('qr-video');
+      const placeholder = document.getElementById('scanner-placeholder');
+      const button = document.getElementById('camera-button');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        status.textContent = 'Câmera indisponível. Digite o código.';
+        return;
+      }
+      if (!('BarcodeDetector' in window)) {
+        status.textContent = 'Leitura de QR indisponível neste navegador. Digite o código.';
+        return;
+      }
+      try {
+        barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+        scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        video.srcObject = scanStream;
+        await video.play();
+        video.style.display = 'block';
+        placeholder.style.display = 'none';
+        button.disabled = true;
+        button.textContent = 'Câmera ativa';
+        status.textContent = '';
+        const scan = async () => {
+          if (!scanStream || !document.getElementById('qr-modal').classList.contains('open')) return;
+          try {
+            const codes = await barcodeDetector.detect(video);
+            if (codes.length && codes[0].rawValue) {
+              document.getElementById('device-code').value = codes[0].rawValue;
+              status.textContent = 'Código lido';
+              stopScanner();
+              return;
+            }
+          } catch (error) {
+            // Aguarda o próximo quadro.
+          }
+          scanFrame = requestAnimationFrame(scan);
+        };
+        scanFrame = requestAnimationFrame(scan);
+      } catch (error) {
+        status.textContent = error.name === 'NotAllowedError' ? 'Permita o acesso à câmera.' : 'Não foi possível abrir a câmera.';
+        stopScanner();
+      }
+    }
+    function stopScanner() {
+      if (scanFrame !== null) cancelAnimationFrame(scanFrame);
+      scanFrame = null;
+      if (scanStream) {
+        scanStream.getTracks().forEach(track => track.stop());
+        scanStream = null;
+      }
+      const video = document.getElementById('qr-video');
+      video.pause();
+      video.srcObject = null;
+      video.style.display = 'none';
+      document.getElementById('scanner-placeholder').style.display = 'block';
+      const button = document.getElementById('camera-button');
+      button.disabled = false;
+      button.textContent = 'Abrir câmera';
+    }
+    function closeQrModal() {
+      stopScanner();
+      closeModal('qr-modal');
+    }
+    function connectDevice(event) {
+      event.preventDefault();
+      const input = document.getElementById('device-code');
+      const code = input.value.trim();
+      if (code.length < 3) {
+        document.getElementById('scanner-status').textContent = 'Código inválido';
+        return;
+      }
+      if (!state.devices.some(device => device.code === code)) {
+        state.devices.push({ code, addedAt: new Date().toISOString() });
+      }
+      saveState();
+      renderDevices();
+      input.value = '';
+      document.getElementById('scanner-status').textContent = 'Código registrado';
+      stopScanner();
+    }
+    function renderDevices() {
+      const list = document.getElementById('device-list');
+      list.innerHTML = state.devices.map(device => `<div class="device-item">${escapeHtml(device.code)}</div>`).join('');
+    }
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[character]);
+    }
+
+    document.getElementById('main-add').addEventListener('click', () => addWater(state.settings.defaultCup));
+    document.querySelectorAll('.quick-add button').forEach(button => {
+      button.addEventListener('click', () => addWater(button.dataset.amount));
+    });
+    document.getElementById('undo-last').addEventListener('click', undoLast);
+    document.getElementById('open-settings').addEventListener('click', openSettings);
+    document.getElementById('open-qr').addEventListener('click', openQrModal);
+    document.getElementById('prev-month').addEventListener('click', () => {
+      viewedMonth = new Date(viewedMonth.getFullYear(), viewedMonth.getMonth() - 1, 1, 12);
+      renderCalendar();
+    });
+    document.getElementById('next-month').addEventListener('click', () => {
+      if (viewedMonth.getFullYear() !== monthStart.getFullYear() || viewedMonth.getMonth() !== monthStart.getMonth()) {
+        viewedMonth = new Date(viewedMonth.getFullYear(), viewedMonth.getMonth() + 1, 1, 12);
+        renderCalendar();
+      }
+    });
+    document.getElementById('calendar-grid').addEventListener('click', event => {
+      const button = event.target.closest('button[data-day]');
+      if (!button || button.disabled) return;
+      selectedDayKey = button.dataset.day;
+      renderCalendar();
+    });
+    document.querySelectorAll('.bottom-nav button').forEach(button => {
+      button.addEventListener('click', () => showScreen(button.dataset.screen));
+    });
+    document.getElementById('settings-form').addEventListener('submit', saveSettings);
+    document.getElementById('share-button').addEventListener('click', shareProfile);
+    document.getElementById('camera-button').addEventListener('click', startScanner);
+    document.getElementById('device-form').addEventListener('submit', connectDevice);
+    document.getElementById('close-qr').addEventListener('click', closeQrModal);
+    document.querySelectorAll('[data-close]').forEach(button => {
+      button.addEventListener('click', () => closeModal(button.dataset.close));
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+      backdrop.addEventListener('click', event => {
+        if (event.target !== backdrop) return;
+        if (backdrop.id === 'qr-modal') closeQrModal();
+        else closeModal(backdrop.id);
+      });
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        closeModal('settings-modal');
+        closeQrModal();
+      }
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
